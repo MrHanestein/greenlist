@@ -120,6 +120,7 @@ The last recorded full verification on 14 September 2026 reported 68 passing aut
 - [Employer research candidates](docs/research/EMPLOYER-CANDIDATES.md)
 - [Analyst review rubric](docs/research/ANALYST-REVIEW-RUBRIC.md)
 - [Development Roadmap (350-Hour Plan)](./ROADMAP.md)
+- [Project overview](./docs/project-overview.md)
 
 
 Some setup documents record earlier plans. Where prices, limits or release status differ, use this README and the dated learning implementation notes as the current project summary. Check service pricing before purchasing anything.
