@@ -1,0 +1,1 @@
+require('./register-ts.cjs');const fs=require('node:fs'),path=require('node:path');for(const file of fs.readdirSync('tests').filter(f=>f.endsWith('.test.ts')))require(path.resolve('tests',file));

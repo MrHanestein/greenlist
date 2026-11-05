@@ -1,0 +1,1 @@
+export { vacancyEvidence } from './domain';

@@ -1,0 +1,85 @@
+
+> greenlist@0.2.0 test
+> npm test --workspace @greenlist/app
+
+
+> @greenlist/app@0.2.0 test
+> node scripts/test.cjs
+
+✔ greenhouse contact fixture 1 (136.2676ms)
+✔ greenhouse contact fixture 2 (47.1068ms)
+✔ greenhouse contact fixture 3 (24.9618ms)
+✔ greenhouse contact fixture 4 (21.7633ms)
+✔ greenhouse contact fixture 5 (19.2989ms)
+✔ greenhouse contact fixture 6 (18.9898ms)
+✔ greenhouse contact fixture 7 (19.3558ms)
+✔ greenhouse contact fixture 8 (25.396ms)
+✔ greenhouse contact fixture 9 (25.3366ms)
+✔ greenhouse contact fixture 10 (19.0075ms)
+✔ lever contact fixture 1 (18.1782ms)
+✔ lever contact fixture 2 (16.0419ms)
+✔ lever contact fixture 3 (15.762ms)
+✔ lever contact fixture 4 (16.8355ms)
+✔ lever contact fixture 5 (19.6458ms)
+✔ lever contact fixture 6 (16.6546ms)
+✔ lever contact fixture 7 (18.0607ms)
+✔ lever contact fixture 8 (15.7561ms)
+✔ lever contact fixture 9 (19.8541ms)
+✔ lever contact fixture 10 (20.2913ms)
+✔ unsupported custom controls and sensitive fields are never guessed (9.3827ms)
+✔ hidden contact fields and honeypots stay empty (14.3379ms)
+✔ reviewed answers match exact labels and never fill sponsorship answers (23.7401ms)
+✔ only a recognised active monthly subscription grants Plus (0.397ms)
+✔ scheduled write routes fail closed without their secret (2.6897ms)
+✔ vacancy policy is independent of an employer licence (2.2008ms)
+✔ matching does not erase meaningful employer identity (0.3398ms)
+✔ personal ranking flags sponsorship contradictions and undisclosed salary (0.5769ms)
+✔ drafts reproduce approved facts, never instructions from the advert (1.0008ms)
+✔ UTC quotas do not reset free lifetime trials (0.7667ms)
+✔ canonical URLs preserve requisition identity and reject unsafe schemes (0.3328ms)
+▶ database and authenticated endpoint integration
+  ✔ learning saves are isolated, reject stale writes and grade on the server (142.0564ms)
+  ✔ interview feedback is private, cached and refunds only its own quota on failure (167.0285ms)
+  ✔ free preparation limit is atomic under concurrent requests (368.2101ms)
+  ✔ retrying an existing pack does not consume another unit (20.8777ms)
+  ✔ Plus grants exactly 40 packs and does not reset free trials (131.0436ms)
+  ✔ failed AI generation restores allowance and stores no pack (55.7964ms)
+  ✔ saved pack revisions reject stale edits and foreign ownership (29.1145ms)
+  ✔ private data cannot be accessed through another user’s IDs (14.0631ms)
+  ✔ submission requires confirmation and records one immutable version (37.2756ms)
+  ✔ extension retry creates one draft and never marks it submitted (63.7277ms)
+  ✔ extension sees contact data only and revocation takes effect immediately (14.4126ms)
+  ✔ ambiguous names and other routes do not claim a Skilled Worker licence (46.5377ms)
+  ✔ bad snapshot does not replace the successful imported register (9.5044ms)
+  ✔ closed and stale jobs disappear from persisted shortlists (39.4906ms)
+  ✔ private document reads and deletes require ownership before storage access (154.5905ms)
+  ✔ billing portal works with no sale price or enabled pilot (14.6146ms)
+  ✔ billing uses current customer state, including cancellation and out-of-order events (30.4226ms)
+  ✔ account deletion is retryable and cascades private data only after external work succeeds (39.6234ms)
+  ✔ Lever filters non-UK roles and preserves listings on failures (56.265ms)
+  ✔ historical rows are removed only after a verified archive round trip (50.264ms)
+  ✔ full-source closure differs from a source outage (24.9352ms)
+✔ database and authenticated endpoint integration (1785.4215ms)
+✔ assessment rejects partial, unknown and out-of-range answers (0.3409ms)
+✔ lessons and practice cannot increase assessed evidence (0.2345ms)
+✔ sponsorship refusal and unknown licence override sampled skill success (0.8253ms)
+✔ role brief distinguishes excerpts from inferred tasks and unavailable history (0.6457ms)
+✔ shared plan prioritises relevant skills within the weekly time budget (0.2614ms)
+✔ AI feedback must quote the actual response and use the constrained rubric (1.0552ms)
+✔ conditional sponsorship never becomes an unconditional offer (0.1415ms)
+✔ UK discovery excludes senior and unlocated remote jobs (0.1337ms)
+✔ work now and sponsorship later do not receive the immediate-sponsorship penalty (0.2639ms)
+✔ short skill names do not match arbitrary substrings (0.2112ms)
+✔ subscription quota follows the actual billing period (0.1762ms)
+✔ preparation rejects unknown sources, invented numbers and nonexistent CV quotes (0.8701ms)
+✔ sensitive answers stay manual and missing questions produce prompts (0.2046ms)
+✔ missing AI configuration fails closed (0.2202ms)
+✔ week-four metrics exclude immature cohorts and completed searches (0.3583ms)
+ℹ tests 68
+ℹ suites 0
+ℹ pass 68
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2770.709

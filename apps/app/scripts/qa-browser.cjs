@@ -1,0 +1,28 @@
+const {chromium}=require('@playwright/test'),fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+(async()=>{
+ const browser=await chromium.launch({executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true});
+ const page=await browser.newPage({viewport:{width:1440,height:1080}});
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('http://127.0.0.1:3000/demo');await page.getByRole('heading',{name:'Good to see you, Alex.'}).waitFor();
+ await page.screenshot({path:'work/dashboard-desktop.png',fullPage:true});
+ await page.getByRole('button',{name:'Review role ↗'}).first().click();await page.getByRole('dialog').waitFor();
+ await page.getByRole('button',{name:'Prepare application · 1 pack'}).click();await page.getByRole('heading',{name:'Your preparation pack'}).waitFor();
+ await page.getByRole('button',{name:'Save to tracker'}).click();await page.getByRole('button',{name:'Close role'}).click();
+ await page.getByRole('button',{name:'My applications',exact:false}).click();await page.getByRole('button',{name:'Update & review →'}).click();
+ await page.getByLabel('Stage').selectOption('SENT');await page.getByLabel('Answers actually submitted').fill('I used Python and SQL for my university project.');
+ await page.getByRole('checkbox').check();await page.getByRole('button',{name:'Save application record'}).click();
+ await page.getByText('SENT',{exact:true}).waitFor();
+ await page.getByRole('button',{name:'Application memory',exact:false}).click();
+ await page.getByLabel('Short title').fill('Volunteer data project');await page.getByLabel('Your example',{exact:true}).fill('I cleaned a dataset for a local volunteer group and documented the process.');
+ await page.getByRole('checkbox').check();await page.getByRole('button',{name:'Save approved example'}).click();await page.getByRole('heading',{name:'Volunteer data project'}).waitFor();
+ await page.getByRole('button',{name:'My shortlist',exact:false}).click();
+ await page.getByRole('button',{name:'Advert offers sponsorship',exact:true}).click();assert.equal(await page.locator('.job-card').count(),1);
+ await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'All matches',exact:true}).click();
+ await page.locator('.toast').waitFor({state:'hidden'});
+ await page.screenshot({path:'work/dashboard-mobile.png',fullPage:true});
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),'Mobile page overflows horizontally');
+ await page.goto('http://127.0.0.1:3000');await page.screenshot({path:'work/landing-mobile.png',fullPage:true});
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),'Landing overflows horizontally');
+ assert.deepEqual(errors,[]);
+ await browser.close();console.log('Browser QA passed: preparation, saving, confirmed submission, memory, filtering, mobile layout; no page errors.');
+})().catch(e=>{console.error(e);process.exitCode=1;});

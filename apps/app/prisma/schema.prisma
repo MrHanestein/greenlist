@@ -1,0 +1,412 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SubscriptionTier {
+  FREE
+  PLUS
+  STARTER
+  PRO
+  CAREER_PLUS
+}
+
+enum ApplicationStatus {
+  DRAFTED
+  SENT
+  VIEWED
+  REPLIED
+  INTERVIEW
+  OFFER
+  REJECTED
+  WITHDRAWN
+}
+
+model User {
+  id                 String            @id @default(cuid())
+  clerkId            String            @unique
+  email              String            @unique
+  name               String?
+  subscriptionTier   SubscriptionTier  @default(FREE)
+  stripeCustomerId   String?           @unique
+  stripeSubscriptionId String?
+  lockedPriceId      String?           // set at purchase time, honours "lifetime lock-in" pricing
+  visaStatus         String?           // e.g. "Skilled Worker visa", "settled", "requires sponsorship"
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  subscriptionValidUntil DateTime?
+  subscriptionPeriodStart DateTime?
+  searchStatus String @default("SEARCHING")
+  workAuthorisedNow Boolean?
+  needsSponsorshipNow Boolean?
+  needsSponsorshipFuture Boolean?
+  targetRoles String[] @default([])
+  preferredLocations String[] @default([])
+  skills String[] @default([])
+  contact Json?
+  cvText String @default("")
+  onboardedAt DateTime?
+  deletingAt DateTime?
+  extensionVersion Int @default(0)
+  emailAlerts Boolean @default(false)
+
+  cvProfiles     CvProfile[]
+  jobScores      JobScore[]
+  applications   Application[]
+  autofillEvents AutofillEvent[]
+  facts ApprovedFact[]
+  packs ApplicationPack[]
+  shortlists Shortlist[]
+  notifications Notification[]
+  usage Usage[]
+  aiRuns AiRun[]
+  feedback JobFeedback[]
+  productEvents ProductEvent[]
+  learning LearningProgress?
+
+  @@index([clerkId])
+}
+
+model LearningProgress {
+  userId String @id
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  revision Int @default(0)
+  state Json
+  updatedAt DateTime @updatedAt
+}
+
+model CvProfile {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label       String   @default("Primary") // supports multiple CV variants (Pro+)
+  rawFileUrl  String?
+  parsedJson  Json     // structured output from the CV parser: contact, workHistory, education, skills, links
+  isPrimary   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Sponsor {
+  id                String   @id @default(cuid())
+  companyName       String
+  companyNameNorm   String   // lowercased/stripped for fuzzy matching
+  townCity          String?
+  county             String?
+  route             String?  // e.g. "Skilled Worker"
+  ratingType        String?
+  lastRefreshedAt   DateTime @default(now())
+  snapshotId String?
+  snapshot SponsorSnapshot? @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+
+  @@index([companyNameNorm])
+  @@index([snapshotId, companyNameNorm])
+}
+
+model Job {
+  id             String   @id @default(cuid())
+  externalId     String   // id from the source API
+  source         String   // "adzuna" | "reed" | "jsearch"
+  title          String
+  company        String
+  companyNorm    String
+  location       String?
+  description    String
+  url            String
+  salaryMin      Int?
+  salaryMax      Int?
+  postedAt       DateTime
+  ingestedAt     DateTime @default(now())
+  isSponsor      Boolean  @default(false)
+  isBlacklisted  Boolean  @default(false)
+  blacklistReason String?
+  canonicalKey String? @unique
+  employerId String?
+  employer Employer? @relation(fields: [employerId], references: [id])
+  licenceStatus String @default("UNVERIFIED")
+  licenceEvidence Json?
+  vacancyPolicy String @default("UNKNOWN")
+  evidenceQuote String?
+  evidenceCheckedAt DateTime @default(now())
+  contentHash String @default("")
+  evidenceVersion Int @default(0)
+  questions String[] @default([])
+  warnings String[] @default([])
+  lastCheckedAt DateTime @default(now())
+  closedAt DateTime?
+  deadline DateTime?
+  sources JobSource[]
+  feedback JobFeedback[]
+  packs ApplicationPack[]
+
+  scores       JobScore[]
+  applications Application[]
+
+  @@unique([source, externalId])
+  @@index([companyNorm])
+  @@index([postedAt])
+  @@index([closedAt, lastCheckedAt, id])
+}
+
+model JobScore {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId       String
+  job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  score       Int      // 0-100
+  reasoning   String?  // short explanation, reused by autofill's AI-drafted custom answers
+  scoredAt    DateTime @default(now())
+
+  @@unique([userId, jobId])
+  @@index([userId, score])
+}
+
+model Application {
+  id            String            @id @default(cuid())
+  userId        String
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId         String?
+  job           Job?              @relation(fields: [jobId], references: [id])
+  status        ApplicationStatus @default(DRAFTED)
+  coverLetter   String?
+  appliedVia    String?           // "autofill" | "manual" | "batch"
+  ghostMode     Boolean           @default(false)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  lastFollowUpAt DateTime?
+  externalUrl String?
+  title String @default("")
+  company String @default("")
+  submittedAt DateTime?
+  deadline DateTime?
+  followUpAt DateTime?
+  notes String @default("")
+  versions ApplicationVersion[]
+  events SubmissionEvent[]
+
+  @@index([userId, status])
+  @@unique([userId, externalUrl])
+}
+
+model AutofillFieldMap {
+  id          String   @id @default(cuid())
+  atsName     String   // "greenhouse" | "lever" | "workday" | ...
+  hostPattern String   // url pattern this map applies to
+  fieldMap    Json     // { canonicalField: selector }
+  confidence  String   @default("verified") // "verified" | "inferred" | "needs_review"
+  submittedBy String?  // userId, for concierge-flagged maps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([atsName])
+  @@index([hostPattern])
+}
+
+model AutofillEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  atsName   String
+  hostUrl   String
+  fieldsFilled Int
+  fieldsLowConfidence Int @default(0)
+  createdAt DateTime @default(now())
+  eventKey String?
+
+  @@index([userId])
+  @@unique([userId, eventKey])
+}
+
+model SponsorSnapshot {
+  id String @id @default(cuid())
+  sourceUrl String
+  sourceDate DateTime
+  checksum String @unique
+  importedAt DateTime @default(now())
+  rowCount Int
+  archivePath String?
+  archiveChecksum String?
+  archivedAt DateTime?
+  sponsors Sponsor[]
+}
+
+model Employer {
+  id String @id @default(cuid())
+  legalName String
+  legalNameNorm String @unique
+  townCity String?
+  reviewedAt DateTime
+  website String?
+  careersUrl String?
+  boardProvider String?
+  boardToken String?
+  permissionEvidenceUrl String?
+  feedApproved Boolean @default(false)
+  aliases EmployerAlias[]
+  jobs Job[]
+}
+
+model EmployerAlias {
+  id String @id @default(cuid())
+  aliasNorm String @unique
+  employerId String
+  employer Employer @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  evidenceUrl String
+  reviewedAt DateTime
+}
+
+model JobSource {
+  id String @id @default(cuid())
+  jobId String
+  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  source String
+  externalId String
+  url String
+  lastSeenAt DateTime @default(now())
+  closedAt DateTime?
+  @@unique([source, externalId])
+}
+
+model ApprovedFact {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title String
+  body String
+  approvedAt DateTime
+  updatedAt DateTime @updatedAt
+  @@index([userId])
+}
+
+model ApplicationPack {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId String
+  job Job @relation(fields: [jobId], references: [id])
+  requestKey String
+  content Json
+  createdAt DateTime @default(now())
+  revision Int @default(1)
+  revisions PackRevision[]
+  @@unique([userId, requestKey])
+}
+
+model PackRevision {
+  id String @id @default(cuid())
+  packId String
+  pack ApplicationPack @relation(fields: [packId], references: [id], onDelete: Cascade)
+  revision Int
+  content Json
+  createdAt DateTime @default(now())
+  @@unique([packId, revision])
+}
+
+model AiRun {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  requestKey String
+  kind String @default("PACK")
+  period String
+  status String @default("PENDING")
+  reservedMicros Int
+  actualMicros Int?
+  budgetPeriod String
+  model String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  @@unique([userId, requestKey])
+  @@index([status, expiresAt])
+}
+
+model ServiceBudget {
+  period String @id
+  spentMicros Int @default(0)
+}
+
+model JobFeedback {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId String
+  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  kind String
+  createdAt DateTime @default(now())
+  @@unique([userId, jobId])
+}
+
+model ProductEvent {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind String
+  createdAt DateTime @default(now())
+  @@index([kind, createdAt])
+  @@index([userId, createdAt])
+}
+
+model ApplicationVersion {
+  id String @id @default(cuid())
+  applicationId String
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  content Json
+  createdAt DateTime @default(now())
+}
+
+model SubmissionEvent {
+  id String @id @default(cuid())
+  applicationId String
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  requestKey String
+  source String @default("USER_CONFIRMED")
+  createdAt DateTime @default(now())
+  @@unique([applicationId, requestKey])
+}
+
+model Shortlist {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  period String
+  jobIds String[]
+  createdAt DateTime @default(now())
+  @@unique([userId, period])
+}
+
+model Usage {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  period String
+  kind String
+  count Int @default(0)
+  @@unique([userId, period, kind])
+}
+
+model Notification {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  key String
+  message String
+  createdAt DateTime @default(now())
+  readAt DateTime?
+  emailedAt DateTime?
+  @@unique([userId, key])
+}
+
+model SyncRun {
+  id String @id @default(cuid())
+  kind String
+  status String
+  message String?
+  createdAt DateTime @default(now())
+}

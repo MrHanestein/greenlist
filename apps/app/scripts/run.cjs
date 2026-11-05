@@ -1,0 +1,1 @@
+try{process.loadEnvFile('.env');}catch(e){if(e.code!=='ENOENT')throw e;}require('./register-ts.cjs');const path=require('node:path');const file=path.resolve(process.argv[2]);process.argv=[process.execPath,file,...process.argv.slice(3)];require(file);

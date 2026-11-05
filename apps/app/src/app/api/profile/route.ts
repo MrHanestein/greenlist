@@ -1,0 +1,7 @@
+import { z } from 'zod';
+import { body,endpoint } from '@/lib/http';
+import { requireUser } from '@/lib/user';
+import { prisma } from '@/lib/prisma';
+const schema=z.object({name:z.string().trim().min(1).max(150),contact:z.object({firstName:z.string().trim().min(1).max(80),lastName:z.string().trim().min(1).max(80),email:z.string().email(),phone:z.string().max(40).default(''),linkedin:z.union([z.literal(''),z.string().url().startsWith('https://')]).default(''),portfolio:z.union([z.literal(''),z.string().url().startsWith('https://')]).default(''),currentCompany:z.string().max(200).default(''),currentTitle:z.string().max(200).default(''),school:z.string().max(200).default(''),degree:z.string().max(200).default('')}),skills:z.array(z.string().trim().min(1).max(50)).max(50),targetRoles:z.array(z.string().trim().min(1).max(80)).min(1).max(10),preferredLocations:z.array(z.string().trim().min(1).max(80)).max(10),workAuthorisedNow:z.boolean().nullable(),needsSponsorshipNow:z.boolean().nullable(),needsSponsorshipFuture:z.boolean().nullable(),cvText:z.string().max(30000),emailAlerts:z.boolean().default(false)});
+export const GET=endpoint(async()=>({user:await requireUser()}));
+export const PUT=endpoint(async req=>{const user=await requireUser();const input=await body(req,schema);if(!user.onboardedAt)await prisma.productEvent.create({data:{userId:user.id,kind:'ONBOARDED'}});return {user:await prisma.user.update({where:{id:user.id},data:{...input,onboardedAt:user.onboardedAt??new Date()}})};});

@@ -1,0 +1,3 @@
+import { SignUp } from '@clerk/nextjs';
+import Link from 'next/link';
+export default function Page(){return <main className="auth-page">{process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?<SignUp fallbackRedirectUrl="/dashboard" signInUrl="/sign-in"/>:<div className="card"><h1>Welcome to Greenlist</h1><p>Account creation opens when the deployment is connected.</p><Link className="btn" href="/demo">Explore the interactive demo</Link></div>}</main>;}

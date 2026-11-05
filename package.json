@@ -1,0 +1,28 @@
+{
+  "name": "greenlist",
+  "private": true,
+  "version": "0.2.0",
+  "workspaces": [
+    "apps/app"
+  ],
+  "scripts": {
+    "dev:app": "npm run dev --workspace @greenlist/app",
+    "build:app": "npm run build --workspace @greenlist/app",
+    "test": "npm test --workspace @greenlist/app",
+    "typecheck": "npm run typecheck --workspace @greenlist/app",
+    "db:generate": "npm run db:generate --workspace @greenlist/app",
+    "db:deploy": "npm run db:deploy --workspace @greenlist/app"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "overrides": {
+    "postcss": "$postcss"
+  },
+  "devDependencies": {
+    "postcss": "8.5.28"
+  },
+  "dependencies": {
+    "next": "15.5.25"
+  }
+}

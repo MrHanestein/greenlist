@@ -1,0 +1,47 @@
+{
+  "manifest_version": 3,
+  "name": "Greenlist — Apply with evidence",
+  "version": "0.3.0",
+  "description": "Review-first autofill for Greenhouse and Lever. Work authorisation and submission remain in your control.",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://*.greenhouse.io/*",
+    "https://*.greenhouse.com/*",
+    "https://*.lever.co/*",
+    "http://localhost:3000/*"
+  ],
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.greenhouse.io/*",
+        "https://*.greenhouse.com/*",
+        "https://*.lever.co/*"
+      ],
+      "js": [
+        "src/fill-engine.js",
+        "src/content.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
+  "action": {
+    "default_popup": "src/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

@@ -1,0 +1,30 @@
+name: Refresh Greenlist data
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 * * * *'
+permissions:
+  contents: read
+concurrency:
+  group: greenlist-data-refresh
+  cancel-in-progress: false
+jobs:
+  refresh:
+    if: github.event_name == 'workflow_dispatch' || vars.GREENLIST_SCHEDULE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Refresh approved sources and search updates
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ "$(date -u +%H)" = "03" ]; then
+            node apps/app/scripts/refresh.cjs --daily
+          else
+            node apps/app/scripts/refresh.cjs
+          fi
